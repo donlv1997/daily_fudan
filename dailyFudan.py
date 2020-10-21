@@ -193,7 +193,7 @@ def get_account():
     """
     获取账号信息
     """
-    print("\n\n请仔细阅读以下日志！！\n请仔细阅读以下日志！！！！\n请仔细阅读以下日志！！！！！！\n\n")
+    # print("\n\n请仔细阅读以下日志！！\n请仔细阅读以下日志！！！！\n请仔细阅读以下日志！！！！！！\n\n")
     if os_path.exists("account.txt"):
         print("读取账号中……")
         with open("account.txt", "r") as old:
@@ -221,6 +221,7 @@ def get_account():
 
 
 if __name__ == '__main__':
+    print("执行时间: " + time.strftime("%Y_%m_%d-%H:%M:%S"))
     uid, psw = get_account()
     # print(uid, psw)
     zlapp_login = 'https://uis.fudan.edu.cn/authserver/login?' \
