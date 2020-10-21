@@ -1,8 +1,6 @@
 import time
-import base64
+from account import get_account
 from json import loads as json_loads
-from os import path as os_path
-from sys import exit as sys_exit
 
 from lxml import etree
 from requests import session
@@ -93,9 +91,11 @@ class Fudan:
             print("\n***********************"
                   "\n◉登录成功"
                   "\n***********************\n")
+            return True
         else:
             print("◉登录失败，请检查账号信息")
             self.close()
+            return False
 
     def logout(self):
         """
@@ -119,7 +119,7 @@ class Fudan:
         print("◉关闭会话")
         print("************************")
         # input("回车键退出")
-        sys_exit()
+        # sys_exit()
 
 
 class Zlapp(Fudan):
@@ -147,9 +147,11 @@ class Zlapp(Fudan):
         if last_info["d"]["info"]["date"] == today:
             print("\n*******今日已提交*******")
             self.close()
+            return False
         else:
             print("\n\n*******未提交*******")
             self.last_info = last_info["d"]["info"]
+            return True
 
     def checkin(self):
         """
@@ -189,49 +191,16 @@ class Zlapp(Fudan):
         print(save_msg, '\n\n')
 
 
-def get_account():
-    """
-    获取账号信息
-    """
-    # print("\n\n请仔细阅读以下日志！！\n请仔细阅读以下日志！！！！\n请仔细阅读以下日志！！！！！！\n\n")
-    if os_path.exists("account.txt"):
-        print("读取账号中……")
-        with open("account.txt", "r") as old:
-            raw = old.readlines()
-        if (raw[0][:3] != "uid") or (len(raw[0]) < 10):
-            print("account.txt 内容无效, 请手动修改内容")
-            sys_exit()
-        uid_b = (raw[0].split(":"))[1].strip()
-        uid = base64.b64decode(uid_b).decode("UTF-8")
-        psw_b = (raw[1].split(":"))[1].strip()
-        psw = base64.b64decode(psw_b).decode("UTF-8")
-
-    else:
-        print("未找到account.txt, 判断为首次运行, 请接下来依次输入学号密码")
-        uid = input("学号：")
-        uid_b = base64.b64encode(uid.encode("UTF-8")).decode("UTF-8")
-        psw = input("密码：")
-        psw_b = base64.b64encode(psw.encode("UTF-8")).decode("UTF-8")
-        with open("account.txt", "w") as new:
-            tmp = "uid:" + uid_b + "\npsw:" + psw_b + "\n"
-            new.write(tmp)
-        print("账号已保存在目录下account.txt，请注意文件安全，不要放在明显位置\n\n建议拉个快捷方式到桌面")
-
-    return uid, psw
-
-
 if __name__ == '__main__':
     print("执行时间: " + time.strftime("%Y_%m_%d-%H:%M:%S"))
-    uid, psw = get_account()
-    # print(uid, psw)
-    zlapp_login = 'https://uis.fudan.edu.cn/authserver/login?' \
-                  'service=https://zlapp.fudan.edu.cn/site/ncov/fudanDaily'
-    daily_fudan = Zlapp(uid, psw, url_login=zlapp_login)
-    daily_fudan.login()
+    accounts = get_account()
+    for (uid, psw) in accounts:
+        print("为学号" + uid + "进行auto平安复旦!")
+        zlapp_login = 'https://uis.fudan.edu.cn/authserver/login?' \
+                      'service=https://zlapp.fudan.edu.cn/site/ncov/fudanDaily'
+        daily_fudan = Zlapp(uid, psw, url_login=zlapp_login)
 
-    daily_fudan.check()
-    daily_fudan.checkin()
-    # 再检查一遍
-    daily_fudan.check()
-
-    daily_fudan.close()
+        if daily_fudan.login() and daily_fudan.check():
+            daily_fudan.checkin()
+            # 再检查一遍
+            daily_fudan.check()
