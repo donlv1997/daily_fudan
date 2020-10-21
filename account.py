@@ -53,8 +53,13 @@ def __append_account():
     """
     新增用户
     """
+    uid_psws = __read_accounts()
+    accounts = [uid for (uid, _) in uid_psws]
     print("追加新的account...")
     uid = input("学号：")
+    if uid in accounts:
+        print("账号已经存在!")
+        return
     psw = input("密码：")
     uid_b = base64.b64encode(uid.encode("UTF-8")).decode("UTF-8")
     psw_b = base64.b64encode(psw.encode("UTF-8")).decode("UTF-8")
@@ -69,14 +74,15 @@ def __read_accounts():
     读取账号txt为python List
     """
     accounts = []
-    with open("data.txt", "r") as old:
-        raw = old.readlines()
-    for i in range(0, len(raw), 2):
-        uid_b = raw[i].strip()
-        uid = base64.b64decode(uid_b).decode("UTF-8")
-        psw_b = raw[i + 1].strip()
-        psw = base64.b64decode(psw_b).decode("UTF-8")
-        accounts.append((uid, psw))
+    if os.path.exists("data.txt"):
+        with open("data.txt", "r") as old:
+            raw = old.readlines()
+        for i in range(0, len(raw), 2):
+            uid_b = raw[i].strip()
+            uid = base64.b64decode(uid_b).decode("UTF-8")
+            psw_b = raw[i + 1].strip()
+            psw = base64.b64decode(psw_b).decode("UTF-8")
+            accounts.append((uid, psw))
     return accounts
 
 
